@@ -65,7 +65,7 @@ body.light-mode {
     display: flex;
     flex-direction: row;           /* main axis */
     align-items: center;
-    justify-content: center;   /* horizontal centering when no scroll needed */
+    justify-content: flex-start;   /* horizontal centering when no scroll needed */
     overflow-x: auto;   /* horizontal scroll if content overflows */
     gap: 10px;
 }
@@ -95,7 +95,6 @@ body.light-mode {
 #hourly-forecast > * {
     flex: 0 0 120px;           /* fixed width, no grow, no shrink */
 }
-
 
 body.dark-mode .weather-item {
     background: #2a4558;
