@@ -65,8 +65,8 @@ fetch("https://api.open-meteo.com/v1/forecast?latitude=52.37&longitude=4.90&hour
     const windDirs = data.hourly.winddirection_10m;
     const uvIndex = data.hourly.uv_index;
 
-    const now = new Date();
-    const currentTime = now.getTime();
+    const currentTime = new Date()
+    currentTime.setMinutes(0, 0, 0);
 
     // End time: next day 02:00
     const end = new Date();

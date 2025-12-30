@@ -63,15 +63,15 @@ body.light-mode {
     font-family: system-ui, sans-serif;
 
     display: flex;
-    flex-direction: column;
+    flex-direction: row;           /* main axis */
     align-items: center;
+    justify-content: center;   /* horizontal centering when no scroll needed */
+    overflow-x: auto;   /* horizontal scroll if content overflows */
+    gap: 10px;
 }
 
-#daily-forecast {
-    display: grid;
-    grid-template-columns: repeat(5, 1fr);
-    gap: 10px;
-    max-width: 800px;
+.weather-container > * {
+    flex: 0 0 120px;           /* fixed width, no grow, no shrink */
 }
 
 .weather-item {
@@ -83,26 +83,24 @@ body.light-mode {
     box-shadow: 0 2px 6px rgba(0,0,0,0.1);
 }
 
+#hourly-forecast {
+    display: flex;
+    flex-direction: row;
+    gap: 10px;
+
+    justify-content: flex-start;   /* center items if few */
+    overflow-x: auto;          /* scroll if too many items */
+}
+
+#hourly-forecast > * {
+    flex: 0 0 120px;           /* fixed width, no grow, no shrink */
+}
+
+
 body.dark-mode .weather-item {
     background: #2a4558;
     color: #e8f1f7;
     box-shadow: 0 2px 6px rgba(0,0,0,0.4);
-}
-
-
-.forecast-wrapper {
-    overflow-x: auto;       /* horizontal scroll if too wide */
-    padding: 20px 0;
-    width: 100%;            /* full width of page */
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-}
-
-#hourly-forecast {
-    display: flex;
-    flex-wrap: nowrap;      /* prevent wrapping */
-    gap: 3px;
 }
 
 .travel-widgets {
@@ -110,4 +108,5 @@ body.dark-mode .weather-item {
     justify-content: center; /* items stay together at left */
     align-items: flex-start;
     gap: 10px;                  /* spacing between them */
+    padding: 10px
 }
