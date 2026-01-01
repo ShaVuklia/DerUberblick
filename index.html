@@ -9,51 +9,49 @@
 </head>
 
 <body class="dark-mode">
-
-    <div class="button-container">
-        <button id="toggleButton">Dunkel</button>
-    </div>
-
-    <div>
-        <h2>Wettervorhersage Amsterdam</h2>
-        <div class="weather-container" id="daily-forecast">Wird geladen…</div>
-    </div>
-    
-    <div>
-        <h2>Stündliche Regenwahrscheinlichkeit (Heute)</h2>
-        <div class="weather-container" id="hourly-forecast">Wird geladen…</div>
-    </div>
-
-    <div class="travel-widgets">
-        <div>
-            <iframe
-                src="https://www.google.com/maps/embed?pb=!1m10!1m8!1m3!1d19486.18244424058!2d4.9624103!3d52.3745395!3m2!1i1024!2i768!4f13.1!5e0!3m2!1sde!2snl!4v1766848262880!5m2!1sde!2snl"
-                width="600"
-                height="480"
-                style="border:0;"
-                allowfullscreen=""
-                loading="lazy"
-                referrerpolicy="no-referrer-when-downgrade">
-            </iframe>
+    <div class="container">
+        <div class="button-container">
+            <div id="sunTimes">Wird geladen…</div> 
+            <button id="toggleButton">Dunkel</button>
         </div>
 
         <div>
-            <a
-                href="https://9292.nl/en?from=amsterdam/bushalte-zuiderzeeweg"
-                data-9292="widget"
-                data-9292-text="Zuiderzeeweg%2C%20Amsterdam"
-                data-9292-ref="amsterdam/bushalte-zuiderzeeweg"
-                data-9292-width="320"
-                data-9292-height="480">
-                Reise planen
-            </a>
-            <script src="https://9292.nl/static/js/widget.js"></script>
+            <h2>Wettervorhersage Amsterdam</h2>
+            <div class="weather-container" id="daily-forecast">Wird geladen…</div>
+        </div>
+        
+        <div>
+            <h2>Stündliche Regenwahrscheinlichkeit (Heute)</h2>
+            <div class="weather-container" id="hourly-forecast">Wird geladen…</div>
+        </div>
+
+        <div class="travel-widgets">
+            <div>
+                <iframe
+                    src="https://www.google.com/maps/embed?pb=!1m10!1m8!1m3!1d19486.18244424058!2d4.9624103!3d52.3745395!3m2!1i1024!2i768!4f13.1!5e0!3m2!1sde!2snl!4v1766848262880!5m2!1sde!2snl"
+                    width="600"
+                    height="480"
+                    style="border:0;"
+                    allowfullscreen=""
+                    loading="lazy"
+                    referrerpolicy="no-referrer-when-downgrade">
+                </iframe>
+            </div>
+
+            <div>
+                <a
+                    href="https://9292.nl/en?from=amsterdam/bushalte-zuiderzeeweg"
+                    data-9292="widget"
+                    data-9292-text="Zuiderzeeweg%2C%20Amsterdam"
+                    data-9292-ref="amsterdam/bushalte-zuiderzeeweg"
+                    data-9292-width="320"
+                    data-9292-height="480">
+                    Reise planen
+                </a>
+                <script src="https://9292.nl/static/js/widget.js"></script>
+            </div>
         </div>
     </div>
-
-
-
-  
 
     <script src="script.js"></script>
 

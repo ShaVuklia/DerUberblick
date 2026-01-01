@@ -1,8 +1,66 @@
+const LOCATION = {
+  latitude: 52.37,        // Amsterdam
+  longitude: 4.90,
+  timezone: "Europe/Amsterdam"
+};
+  
+const METEO_API = "https://api.open-meteo.com/v1/forecast";
+
+const dailyForecastDiv = document.getElementById("daily-forecast");
+const hourlyForecastDiv = document.getElementById("hourly-forecast");
+const sunTimesDiv = document.getElementById("sunTimes");
 const toggleButton = document.getElementById('toggleButton');
+
+// Function to update container alignment
+function updateWeatherAlignment(container) {
+  if (container.scrollWidth > container.clientWidth) {
+    container.classList.add("overflow");
+    container.classList.remove("center");
+  } else {
+    container.classList.add("center");
+    container.classList.remove("overflow");
+  }
+}
+
+// Select all weather containers
+const containers = document.querySelectorAll(".weather-container");
+
+// Run on page load
+containers.forEach(updateWeatherAlignment);
+
+// Re-check on window resize
+window.addEventListener("resize", () => {
+  containers.forEach(updateWeatherAlignment);
+});
+
+// Re-check when content changes (e.g., after fetching forecast)
+containers.forEach(container => {
+  const observer = new MutationObserver(() => updateWeatherAlignment(container));
+  observer.observe(container, { childList: true, subtree: true });
+});
+
+
+function buildMeteoUrl({ daily, hourly }) {
+  const params = new URLSearchParams({
+    latitude: LOCATION.latitude,
+    longitude: LOCATION.longitude,
+    timezone: LOCATION.timezone,
+  });
+
+  if (daily) params.set("daily", daily);
+  if (hourly) params.set("hourly", hourly);
+
+  return `${METEO_API}?${params.toString()}`;
+}
+
+async function fetchJson(url) {
+  const res = await fetch(url);
+  if (!res.ok) throw new Error(res.statusText);
+  return res.json();
+}
 
 // Set initial text based on current mode
 toggleButton.textContent = document.body.classList.contains('dark-mode') ? 'Hell' : 'Dunkel';
-
 toggleButton.addEventListener('click', toggleMode);
 
 function toggleMode() {
@@ -15,94 +73,119 @@ function toggleMode() {
     }
 }
 
-fetch("https://api.open-meteo.com/v1/forecast?latitude=52.37&longitude=4.90&daily=temperature_2m_max,temperature_2m_min,precipitation_probability_max,uv_index_max&timezone=Europe%2FAmsterdam")
-  .then(res => res.json())
-  .then(data => {
-    const container = document.getElementById("daily-forecast");
-    container.innerHTML = "";
+async function getSunTimes() {
+  const url = buildMeteoUrl({ daily: "sunrise,sunset" });
 
-    const dates = data.daily.time;
-    const tempMin = data.daily.temperature_2m_min;
-    const tempMax = data.daily.temperature_2m_max;
-    const rainMax = data.daily.precipitation_probability_max;
-    const uvMax = data.daily.uv_index_max;
+  try {
+    const data = await fetchJson(url);
+    console.log(data); // inspect the structure
 
-    for (let i = 0; i < 5; i++) {
-        const date = new Date(dates[i]);
-        const dayName = date.toLocaleDateString('en-EN', { weekday: 'short', month: 'short', day: 'numeric' });
+    const { time, sunrise, sunset } = data.daily;
+    const todayIndex = 0;
 
-        const rainIcon = rainMax[i] >= 35 ? "☔" : "🌂";
+    // Convert ISO strings to Date objects
+    const sunriseDate = new Date(sunrise[todayIndex]);
+    const sunsetDate = new Date(sunset[todayIndex]);
 
-        const div = document.createElement("div");
-        div.className = "weather-item";
-        div.innerHTML = `
-            <strong>${dayName}</strong><br>
-            Temp: ${Math.round(tempMin[i])}/${Math.round(tempMax[i])}°C<br>
-            ${rainIcon}: ${rainMax[i]}%<br>
-            UV Index: ${uvMax[i]}
-        `;
-        container.appendChild(div);
-    }
-  })
-  .catch(err => {
-    document.getElementById("daily-forecast").textContent = "Unable to load forecast.";
-    console.error(err);
+    // Format hours and minutes with leading zeros
+    const sunriseTime = sunriseDate.toLocaleTimeString("de-DE", {hour: "2-digit", minute: "2-digit"});
+    const sunsetTime  = sunsetDate.toLocaleTimeString("de-DE", {hour: "2-digit", minute: "2-digit"});
+
+    sunTimesDiv.textContent = `Sunrise: ${sunriseTime}, Sunset: ${sunsetTime}`;
+  } catch (error) {
+    console.error("Error fetching sun times:", error);
+    sunTimesDiv.textContent = "Unable to load sun times.";
+  }
+}
+
+
+async function getDailyForecast() {
+  const url = buildMeteoUrl({
+    daily: "temperature_2m_max,temperature_2m_min,precipitation_probability_max,uv_index_max"
   });
 
+  try {
+    const data = await fetchJson(url);
+    dailyForecastDiv.innerHTML = "";
 
+    const { time, temperature_2m_min, temperature_2m_max, precipitation_probability_max, uv_index_max } = data.daily;
+    
+    let html = "";
 
-fetch("https://api.open-meteo.com/v1/forecast?latitude=52.37&longitude=4.90&hourly=temperature_2m,precipitation_probability,precipitation,windspeed_10m,winddirection_10m,uv_index&timezone=Europe%2FAmsterdam")
-  .then(res => res.json())
-  .then(data => {
-    const forecastDiv = document.getElementById("hourly-forecast");
-    forecastDiv.innerHTML = "";
+    for (let i = 0; i < 5; i++) {
+      const date = new Date(time[i]);
+      const dayName = date.toLocaleDateString("en-EN", { weekday: "short", month: "short", day: "numeric" });
+      const rainIcon = precipitation_probability_max[i] >= 35 ? "☔" : "🌂";
 
-    const hours = data.hourly.time;                   
-    const temps = data.hourly.temperature_2m;       
-    const rainProbs = data.hourly.precipitation_probability; 
-    const rainAmounts = data.hourly.precipitation;
-    const windSpeeds = data.hourly.windspeed_10m;
-    const windDirs = data.hourly.winddirection_10m;
-    const uvIndex = data.hourly.uv_index;
+      html += `
+        <div class="weather-item">
+          <strong>${dayName}</strong><br>
+          Temp: ${Math.round(temperature_2m_min[i])}/${Math.round(temperature_2m_max[i])}°C<br>
+          ${rainIcon}: ${precipitation_probability_max[i]}%<br>
+          UV Index: ${uv_index_max[i]}
+        </div>
+      `;
+    }
 
-    const currentTime = new Date()
-    currentTime.setMinutes(0, 0, 0);
+    dailyForecastDiv.innerHTML = html;
+    
+  } catch (err) {
+    dailyForecastDiv.textContent = "Unable to load forecast.";
+    console.error(err);
+  }
+}
 
-    // End time: next day 02:00
+async function getHourlyForecast() {
+  const url = buildMeteoUrl({
+    hourly: "temperature_2m,precipitation_probability,precipitation,windspeed_10m,winddirection_10m,uv_index"
+  });
+
+  try {
+    const data = await fetchJson(url);
+    hourlyForecastDiv.innerHTML = "";
+
+    const { time, temperature_2m, precipitation_probability, precipitation, windspeed_10m, uv_index } = data.hourly;
+
+    const now = new Date();
+    now.setMinutes(0, 0, 0);
     const end = new Date();
     end.setDate(end.getDate() + 1);
     end.setHours(2, 0, 0, 0);
-    const endTime = end.getTime();
+    
+    let html = "";
 
-    for (let i = 0; i < hours.length; i++) {
-        const date = new Date(hours[i]);
+    for (let i = 0; i < time.length; i++) {
+      const date = new Date(time[i]);
+      if (date >= now && date <= end) {
         const hour = date.getHours();
+        const temp = Math.round(temperature_2m[i]);
+        const rainProb = precipitation_probability[i];
+        const rainAmount = precipitation[i];
+        const windSpeed = Math.round(windspeed_10m[i]);
+        const uv = uv_index[i];
+        const rainIcon = rainProb >= 35 ? "☔" : "🌂";
 
-        if (date.getTime() >= currentTime && date.getTime() <= endTime) {
-            const temp = Math.round(temps[i]);
-            const rainProb = rainProbs[i];
-            const rainAmount = rainAmounts[i]; // mm
-            const windSpeed = Math.round(windSpeeds[i]);   // km/h
-            const uv = uvIndex[i];
-
-            const rainIcon = rainProb >= 35 ? "☔" : "🌂";
-
-            const div = document.createElement("div");
-            div.className = "weather-item";
-            div.innerHTML = `
-                <strong>${hour}:00</strong><br>
-                Temp: ${temp}°C<br>
-                ${rainIcon}: ${rainProb}% (${rainAmount} mm)<br>
-                🍃: ${windSpeed} km/h<br>
-                UV Index: ${uv}
-            `;
-            forecastDiv.appendChild(div);
-        }
+        html += `
+          <div class="weather-item">
+            <strong>${hour}:00</strong><br>
+            Temp: ${temp}°C<br>
+            ${rainIcon}: ${rainProb}% (${rainAmount} mm)<br>
+            🍃: ${windSpeed} km/h<br>
+            UV Index: ${uv}
+          </div>
+        `;
+      }
     }
-  })
-  .catch(err => {
-    document.getElementById("hourly-forecast").textContent = "Unable to load forecast.";
-    console.error(err);
-  });
 
+    hourlyForecastDiv.innerHTML = html;
+
+  } catch (err) {
+    hourlyForecastDiv.textContent = "Unable to load forecast.";
+    console.error(err);
+  }
+}
+
+getSunTimes();
+getDailyForecast();
+getHourlyForecast();
 
