@@ -106,8 +106,26 @@ body.dark-mode .weather-item {
 
 .travel-widgets {
     display: flex;
-    justify-content: center; /* items stay together at left */
+    flex-wrap: wrap;          /* allow items to wrap on small screens */
+    justify-content: center;  /* center items in each row */
     align-items: flex-start;
-    gap: 10px;                  /* spacing between them */
-    padding: 10px
+    gap: 20px;
+    padding: 20px;
+}
+
+.travel-widgets iframe,
+.travel-widgets a[data-9292] {
+    width: 100%;       /* fill parent horizontally */
+    min-height: 400px;
+    border: 0;         /* optional */
+}
+
+.travel-widgets > div.google-maps {
+    flex: 2 1 0;       /* twice as wide as the 9292 widget */
+    min-width: 300px;  /* don’t shrink too much on small screens */
+}
+
+.travel-widgets > div.widget-9292 {
+    flex: 1 1 0;       /* normal width */
+    min-width: 200px;  /* don’t shrink too much on small screens */
 }
