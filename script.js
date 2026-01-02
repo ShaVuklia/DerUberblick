@@ -4,12 +4,12 @@ const LOCATION = {
   timezone: "Europe/Amsterdam"
 };
   
-const METEO_API = "https://api.open-meteo.com/v1/forecast";
-
+const METEO_API_ENDPOINT = "https://api.open-meteo.com/v1/forecast";
 const dailyForecastDiv = document.getElementById("daily-forecast");
 const hourlyForecastDiv = document.getElementById("hourly-forecast");
 const sunTimesDiv = document.getElementById("sunTimes");
-const toggleButton = document.getElementById('toggleButton');
+
+const toggleButton = document.getElementById("toggleButton");
 
 // Function to update container alignment
 function updateWeatherAlignment(container) {
@@ -34,11 +34,11 @@ window.addEventListener("resize", () => {
 });
 
 // Re-check when content changes (e.g., after fetching forecast)
+// container is a var name for each element in containers
 containers.forEach(container => {
   const observer = new MutationObserver(() => updateWeatherAlignment(container));
   observer.observe(container, { childList: true, subtree: true });
 });
-
 
 function buildMeteoUrl({ daily, hourly }) {
   const params = new URLSearchParams({
@@ -50,7 +50,7 @@ function buildMeteoUrl({ daily, hourly }) {
   if (daily) params.set("daily", daily);
   if (hourly) params.set("hourly", hourly);
 
-  return `${METEO_API}?${params.toString()}`;
+  return `${METEO_API_ENDPOINT}?${params.toString()}`;
 }
 
 async function fetchJson(url) {
@@ -64,13 +64,12 @@ toggleButton.textContent = document.body.classList.contains('dark-mode') ? 'Hell
 toggleButton.addEventListener('click', toggleMode);
 
 function toggleMode() {
-    if (document.body.classList.contains('light-mode')) {
-        document.body.classList.replace('light-mode', 'dark-mode');
-        toggleButton.textContent = 'Hell';
-    } else {
-        document.body.classList.replace('dark-mode', 'light-mode');
-        toggleButton.textContent = 'Dunkel';
-    }
+  const isDark = document.body.classList.contains('dark-mode');
+
+  document.body.classList.toggle('dark-mode', !isDark);
+  document.body.classList.toggle('light-mode', isDark);
+
+  toggleButton.textContent = isDark ? 'Dunkel' : 'Hell';
 }
 
 async function getSunTimes() {
@@ -80,7 +79,7 @@ async function getSunTimes() {
     const data = await fetchJson(url);
     console.log(data); // inspect the structure
 
-    const { time, sunrise, sunset } = data.daily;
+    const { _time, sunrise, sunset } = data.daily;
     const todayIndex = 0;
 
     // Convert ISO strings to Date objects
@@ -98,17 +97,16 @@ async function getSunTimes() {
   }
 }
 
-
 async function getDailyForecast() {
   const url = buildMeteoUrl({
-    daily: "temperature_2m_max,temperature_2m_min,precipitation_probability_max,uv_index_max"
+    daily: "temperature_2m_max,temperature_2m_min,precipitation_probability_max,rain_sum,uv_index_max"
   });
 
   try {
     const data = await fetchJson(url);
     dailyForecastDiv.innerHTML = "";
 
-    const { time, temperature_2m_min, temperature_2m_max, precipitation_probability_max, uv_index_max } = data.daily;
+    const { time, temperature_2m_min, temperature_2m_max, precipitation_probability_max, rain_sum, uv_index_max } = data.daily;
     
     let html = "";
 
@@ -121,7 +119,7 @@ async function getDailyForecast() {
         <div class="weather-item">
           <strong>${dayName}</strong><br>
           Temp: ${Math.round(temperature_2m_min[i])}/${Math.round(temperature_2m_max[i])}°C<br>
-          ${rainIcon}: ${precipitation_probability_max[i]}%<br>
+          ${rainIcon}: ${precipitation_probability_max[i]}% (${rain_sum[i]} mm)<br>
           UV Index: ${uv_index_max[i]}
         </div>
       `;

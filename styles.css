@@ -4,21 +4,30 @@
     gap: 5px;                /* space between each child */
     padding: 10px;
   }
-  
 
 body {
     font-family: system-ui, sans-serif;
     text-align: center;
-    background: #f9f9f9;
     padding: 0px 10px 15px 10px; /* top right bottom left */
-    background-image: url("Snow.jpg");
     background-size: cover;        /* fill the screen */
     background-position: center;   /* center the image */
     background-repeat: no-repeat;  /* no tiling */
     background-attachment: fixed;  /* stays still on scroll */
 }
 
-.button-container {
+/* Dark mode overrides */
+body.dark-mode {
+    background-color: black;
+    color: white;
+    background-image: url("Black-feather-background.jpg");
+}
+
+body.light-mode {
+    background-color: #f9f9f9;
+    background-image: url("Snow.jpg");
+}
+
+.top-bar {
     display: flex;
     justify-content: space-between;
     align-items: center;
@@ -32,71 +41,67 @@ body {
     border-radius: 5px;
     cursor: pointer;
     transition: background-color 0.3s, color 0.3s, border-color 0.3s;
-
-    /* Changes */
-    background-color: rgb(192, 204, 192);
-    color: darkgreen;
-    border: 2px solid darkgreen; /* width + style + color */
 }
 
-/* Dark mode overrides */
-body.dark-mode {
-    background-color: black;
-    color: white;
-    background-image: url("Black-feather-background.jpg");
-    background-size: cover;        /* fill the screen */
-    background-position: center;   /* center the image */
-    background-repeat: no-repeat;  /* no tiling */
-    background-attachment: fixed;  /* stays still on scroll */
-}
-
-/* Dark Mode button */
 body.dark-mode #toggleButton {
     background-color: rgb(0, 0, 0);
     color: white;
     border: 2px solid rgb(119, 154, 117); /* width + style + color */
 }
 
-/* Links in dark mode */
-body.dark-mode a {
-    color: rgb(119, 154, 117);
+body.dark-mode #toggleButton:hover {
+    background-color: rgb(30, 30, 30);
+}
+body.light-mode #toggleButton:hover {
+    background-color: rgb(170, 190, 170);
 }
 
-body.light-mode {
-    background-color: rgb(151, 188, 152);
+body.light-mode #toggleButton {
+    background-color: rgb(192, 204, 192);
+    color: darkgreen;
+    border: 2px solid darkgreen; /* width + style + color */
+}
+
+body.dark-mode a {
+    color: rgb(187, 221, 186);
+}
+
+body.light-mode a{
+    color: rgb(37, 145, 33)
 }
 
 .weather-container {
     padding: 0px 20px 0px 20px; /* top right bottom left */
-    border-radius: 8px;
-    font-family: system-ui, sans-serif;
 
     display: flex;
-    align-items: center;
     justify-content: center;   /* horizontal centering when no scroll needed */
+    align-items: center;
     overflow-x: auto;   /* horizontal scroll if content overflows */
     gap: 10px;
     transition: justify-content 0.2s; /* smooth switch */
     scroll-behavior: smooth;   /* optional: smooth scrolling */
 }
 
+.weather-container.center {
+    justify-content: center;   /* center items when not overflowing */
+    }
+    
+.weather-container.overflow {
+    justify-content: flex-start; /* left-align items when overflowing */
+}      
+
 .weather-item {
     padding: 10px;
-    background: #e8f1f7;
-    color: #2a4558;
     border-radius: 5px;
     text-align: center;
     flex: 0 0 auto;
+}
+
+body.light-mode .weather-item {
+    background: #e8f1f7;
+    color: #2a4558;
     box-shadow: 0 2px 6px rgba(0,0,0,0.1);
 }
-
-.weather-container.center {
-justify-content: center;   /* center items when not overflowing */
-}
-
-.weather-container.overflow {
-justify-content: flex-start; /* left-align items when overflowing */
-}  
 
 body.dark-mode .weather-item {
     background: #2a4558;
@@ -109,8 +114,8 @@ body.dark-mode .weather-item {
     flex-wrap: wrap;          /* allow items to wrap on small screens */
     justify-content: center;  /* center items in each row */
     align-items: flex-start;
-    gap: 20px;
-    padding: 20px;
+    gap: 30px;
+    padding: 30px;
 }
 
 .travel-widgets iframe,
