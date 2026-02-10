@@ -11,6 +11,8 @@ const sunTimesDiv = document.getElementById("sunTimes");
 
 const toggleButton = document.getElementById("toggleButton");
 
+/* TODO: Do we want a single function for updating the container alignments? */
+
 // Function to update container alignment
 function updateWeatherAlignment(container) {
   if (container.scrollWidth > container.clientWidth) {
@@ -90,7 +92,7 @@ async function getSunTimes() {
     const sunriseTime = sunriseDate.toLocaleTimeString("de-DE", {hour: "2-digit", minute: "2-digit"});
     const sunsetTime  = sunsetDate.toLocaleTimeString("de-DE", {hour: "2-digit", minute: "2-digit"});
 
-    sunTimesDiv.textContent = `Sunrise: ${sunriseTime}, Sunset: ${sunsetTime}`;
+    sunTimesDiv.innerHTML = `<span>Sunrise: ${sunriseTime}</span> <span>Sunset: ${sunsetTime}</span>`;
   } catch (error) {
     console.error("Error fetching sun times:", error);
     sunTimesDiv.textContent = "Unable to load sun times.";
@@ -116,9 +118,9 @@ async function getDailyForecast() {
       const rainIcon = precipitation_probability_max[i] >= 35 ? "☔" : "🌂";
 
       html += `
-        <div class="weather-item">
+        <div class="item">
           <strong>${dayName}</strong><br>
-          Temp: ${Math.round(temperature_2m_min[i])}/${Math.round(temperature_2m_max[i])}°C<br>
+          Temp: ${Math.round(temperature_2m_max[i])}/${Math.round(temperature_2m_min[i])}°C<br>
           ${rainIcon}: ${precipitation_probability_max[i]}% (${rain_sum[i]} mm)<br>
           UV Index: ${uv_index_max[i]}
         </div>
@@ -147,13 +149,15 @@ async function getHourlyForecast() {
     const now = new Date();
     now.setMinutes(0, 0, 0);
     const end = new Date();
+    // Create next day with time at 01:00
     end.setDate(end.getDate() + 1);
-    end.setHours(2, 0, 0, 0);
+    end.setHours(1, 0, 0, 0);
     
     let html = "";
 
     for (let i = 0; i < time.length; i++) {
       const date = new Date(time[i]);
+      // Continue loop until 01:00 next day
       if (date >= now && date <= end) {
         const hour = date.getHours();
         const temp = Math.round(temperature_2m[i]);
@@ -164,7 +168,7 @@ async function getHourlyForecast() {
         const rainIcon = rainProb >= 35 ? "☔" : "🌂";
 
         html += `
-          <div class="weather-item">
+          <div class="item">
             <strong>${hour}:00</strong><br>
             Temp: ${temp}°C<br>
             ${rainIcon}: ${rainProb}% (${rainAmount} mm)<br>
@@ -183,7 +187,50 @@ async function getHourlyForecast() {
   }
 }
 
+const zones = {
+  Texas: "America/Chicago",
+  Colombia: "America/Bogota",
+  Amsterdam: "Europe/Amsterdam",
+  Vietnam: "Asia/Ho_Chi_Minh",
+  Singapore: "Asia/Singapore"
+};
+
+function getTimeZones() {
+  const now = new Date();
+  const result = {};
+
+  const timeZonesDiv = document.getElementById("timeZones");
+
+  let html = "";
+
+  // Object.entries = array of the elements [key, values]
+  for (const [place, zone] of Object.entries(zones)) {
+    let timeZone = new Intl.DateTimeFormat("de-DE", {
+      timeZone: zone,
+      timeStyle: "short",
+    }).format(now);
+
+    html += `<span>${place}: ${timeZone}</span>`;
+  }
+  console.log(html);
+
+  timeZonesDiv.innerHTML = html;
+}
+
 getSunTimes();
 getDailyForecast();
 getHourlyForecast();
+getTimeZones();
 
+// Last number is zoom level
+var map = L.map('map').setView([52.3676, 4.9041], 13); // Amsterdam
+
+L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
+  maxZoom: 19,
+  attribution: '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>'
+}).addTo(map);
+
+  /* force recalculation */
+window.addEventListener('load', () => {
+  map.invalidateSize();
+});

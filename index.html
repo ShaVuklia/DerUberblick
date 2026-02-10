@@ -1,20 +1,32 @@
 <!DOCTYPE html>
 <html lang="de">
 
+<!-- To do: make 15-min prediction when clicking on weather button -->
+
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>Shanenigens</title>
     <link rel="stylesheet" href="styles.css" />
+
+    <!-- Include leaflet CSS file --> 
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+    integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY="
+    crossorigin=""/>
+    <!-- Include leaflet JS file -->
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+    integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="
+    crossorigin=""></script>
 </head>
 
-<body class="dark-mode">
-    <div class="container">
-        <div class="top-bar">
-            <div id="sunTimes">Wird geladen…</div> 
-            <button id="toggleButton">Hell</button>
-        </div>
+<body class="light-mode">
+    <div class="top-bar">
+        <div class="times-container" id="sunTimes">Wird geladen…</div>
+        <div class="times-container" id="timeZones">Wird geladen…</div>
+        <button id="toggleButton">Hell</button>
+    </div>
 
+    <div class="main-container">
         <div>
             <h2>Wettervorhersage Amsterdam</h2>
             <div class="weather-container" id="daily-forecast">Wird geladen…</div>
@@ -23,34 +35,9 @@
         <div>
             <h2>Stündliche Vorhersage (Heute)</h2>
             <div class="weather-container" id="hourly-forecast">Wird geladen…</div>
-        </div>
+        </div>    
 
-        <div class="travel-widgets">
-            <div class="google-maps">
-                <iframe
-                    src="https://www.google.com/maps/embed?pb=!1m10!1m8!1m3!1d19486.18244424058!2d4.9624103!3d52.3745395!3m2!1i1024!2i768!4f13.1!5e0!3m2!1sde!2snl!4v1766848262880!5m2!1sde!2snl"
-                    width="600"
-                    height="480"
-                    style="border:0;"
-                    allowfullscreen=""
-                    loading="lazy"
-                    referrerpolicy="no-referrer-when-downgrade">
-                </iframe>
-            </div>
-
-            <div class="widget-9292">
-                <a
-                    href="https://9292.nl/en?from=amsterdam/bushalte-zuiderzeeweg"
-                    data-9292="widget"
-                    data-9292-text="Zuiderzeeweg%2C%20Amsterdam"
-                    data-9292-ref="amsterdam/bushalte-zuiderzeeweg"
-                    data-9292-width="320"
-                    data-9292-height="480">
-                    Reise planen
-                </a>
-                <script src="https://9292.nl/static/js/widget.js"></script>
-            </div>
-        </div>
+        <div id="map"></div>
     </div>
 
     <script src="script.js"></script>
