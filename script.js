@@ -9,7 +9,7 @@ const dailyForecastDiv = document.getElementById("daily-forecast");
 const hourlyForecastDiv = document.getElementById("hourly-forecast");
 const sunTimesDiv = document.getElementById("sunTimes");
 
-const toggleButton = document.getElementById("toggleButton");
+// const toggleButton = document.getElementById("toggleButton");
 
 /* TODO: Do we want a single function for updating the container alignments? */
 
@@ -61,18 +61,31 @@ async function fetchJson(url) {
   return res.json();
 }
 
-// Set initial text based on current mode
-toggleButton.textContent = document.body.classList.contains('dark-mode') ? 'Hell' : 'Dunkel';
-toggleButton.addEventListener('click', toggleMode);
+//MAKE INTO ONE FUNCTION?
 
-function toggleMode() {
-  const isDark = document.body.classList.contains('dark-mode');
+// Media query for system dark mode
+const prefersDarkQuery = window.matchMedia('(prefers-color-scheme: dark)');
 
-  document.body.classList.toggle('dark-mode', !isDark);
-  document.body.classList.toggle('light-mode', isDark);
-
-  toggleButton.textContent = isDark ? 'Dunkel' : 'Hell';
+// Function to apply the mode
+function applyMode(isDark) {
+  document.body.classList.toggle('dark-mode', isDark);
+  document.body.classList.toggle('light-mode', !isDark);
+  toggleButton.textContent = isDark ? 'Hell' : 'Dunkel';
 }
+
+// Initial mode based on system preference
+applyMode(prefersDarkQuery.matches);
+
+// Listen for system preference changes
+prefersDarkQuery.addEventListener('change', (e) => {
+  applyMode(e.matches);
+});
+
+// Toggle button behavior for manual override
+toggleButton.addEventListener('click', () => {
+  const isDark = document.body.classList.contains('dark-mode');
+  applyMode(!isDark);
+});
 
 async function getSunTimes() {
   const url = buildMeteoUrl({ daily: "sunrise,sunset" });
