@@ -3,10 +3,10 @@ body {
     text-align: center;
     display: flex;
     flex-direction: column;
-    background-size: cover;        /* fill the screen */
-    background-position: center;   /* center the image */
-    background-repeat: no-repeat;  /* no tiling */
-    background-attachment: fixed;  /* stays still on scroll */
+    background-size: cover;        /* background image fills the screen */
+    background-position: center;   /* background image center */
+    background-repeat: no-repeat;  /* no tiling in background iamge */
+    background-attachment: fixed;  /* background image stays still on scroll */
 }
 
 /* Dark mode overrides */
@@ -22,15 +22,18 @@ body.light-mode {
 body.dark-mode a {
     color: rgb(187, 221, 186);
 }
-body.light-mode a{
+body.light-mode a {
     color: rgb(37, 145, 33);
 }
 
 .top-bar {
     display: flex;
-    align-items: stretch;
-    padding-left: 20px;
-    gap: 100px;
+    align-items: stretch;   /* default for flex */
+    padding-left: 30px;
+    padding-right: 30px;
+    gap: 20px;
+
+    justify-content: space-between;  /* put first item left, last item right */
 }
 
 body.light-mode .top-bar .times-container {
@@ -49,12 +52,7 @@ body.dark-mode .top-bar .times-container {
     padding-left: 10px;
     padding-right: 10px;
     border-radius: 5px;
-}
-
-#timeZones {
-    flex-grow: 1;   /* item can grow to fill available space */
-    flex-shrink: 1; /* item can shrink if needed */
-    flex-basis: auto; /* start at natural size */
+    flex: 0 1 auto;
 }
 
 #toggleButton {
