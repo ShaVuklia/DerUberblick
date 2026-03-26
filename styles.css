@@ -3,6 +3,7 @@ body {
     text-align: center;
     display: flex;
     flex-direction: column;
+    
     background-size: cover;        /* background image fills the screen */
     background-position: center;   /* background image center */
     background-repeat: no-repeat;  /* no tiling in background iamge */
@@ -29,10 +30,9 @@ body.light-mode a {
 .top-bar {
     display: flex;
     align-items: stretch;   /* default for flex */
-    padding-left: 30px;
-    padding-right: 30px;
+    padding-left: 10px;
+    padding-right: 10px;
     gap: 20px;
-
     justify-content: space-between;  /* put first item left, last item right */
 }
 
@@ -56,8 +56,7 @@ body.dark-mode .top-bar .times-container {
 }
 
 #toggleButton {
-    /* Fixed for the toggleButton */
-    align-self: center;               /* The align-self CSS property overrides a flex item's align-items value */
+    align-self: center;          /* align-self overrides a flex item's align-items value */
     height: 40px;
     padding: 10px 20px;
     font-size: 16px;
