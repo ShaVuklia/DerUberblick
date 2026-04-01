@@ -1,47 +1,65 @@
+// CONFIG
 const LOCATION = {
   latitude: 52.37,        // Amsterdam
   longitude: 4.90,
   timezone: "Europe/Amsterdam"
 };
+
+const zones = {
+  Texas: "America/Chicago",
+  Colombia: "America/Bogota",
+  Amsterdam: "Europe/Amsterdam",
+  Vietnam: "Asia/Ho_Chi_Minh",
+  Singapore: "Asia/Singapore"
+};
   
 const METEO_API_ENDPOINT = "https://api.open-meteo.com/v1/forecast";
+
+// DOM REFERENCES
 const dailyForecastDiv = document.getElementById("daily-forecast");
 const hourlyForecastDiv = document.getElementById("hourly-forecast");
+const timeZonesDiv = document.getElementById("timeZones");
 const sunTimesDiv = document.getElementById("sunTimes");
+const toggleButton = document.getElementById("toggleButton");
 
-// const toggleButton = document.getElementById("toggleButton");
+// MEDIA QUERIES
+const prefersDarkQuery = window.matchMedia('(prefers-color-scheme: dark)');
 
-/* TODO: Do we want a single function for updating the container alignments? */
+// MAP SETUP
+const map = L.map('map').setView([LOCATION.latitude, LOCATION.longitude], 13);
 
-// Function to update container alignment
-function updateWeatherAlignment(container) {
-  if (container.scrollWidth > container.clientWidth) {
-    container.classList.add("overflow");
-    container.classList.remove("center");
+const lightTiles = L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    maxZoom: 19,
+    attribution: '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>'
+});
+
+const darkTiles = L.tileLayer(
+'https://{s}.basemaps.cartocdn.com/dark_nolabels/{z}/{x}/{y}{r}.png',
+{ subdomains: 'abcd', maxZoom: 19 }
+);
+const lightLabels = L.tileLayer(
+  'https://{s}.basemaps.cartocdn.com/light_only_labels/{z}/{x}/{y}{r}.png',
+  { subdomains: 'abcd', maxZoom: 19 }
+);
+
+let currentLayers = [];
+
+function setMapLayers(isDark) {
+  // Remove existing layers
+  currentLayers.forEach(layer => map.removeLayer(layer));
+  currentLayers = [];
+
+  if (isDark) {
+    map.addLayer(darkTiles);
+    map.addLayer(lightLabels);
+    currentLayers = [darkTiles, lightLabels];
   } else {
-    container.classList.add("center");
-    container.classList.remove("overflow");
+    map.addLayer(lightTiles);
+    currentLayers = [lightTiles];
   }
 }
 
-// Select all weather containers
-const containers = document.querySelectorAll(".weather-container");
-
-// Run on page load
-containers.forEach(updateWeatherAlignment);
-
-// Re-check on window resize
-window.addEventListener("resize", () => {
-  containers.forEach(updateWeatherAlignment);
-});
-
-// Re-check when content changes (e.g., after fetching forecast)
-// container is a var name for each element in containers
-containers.forEach(container => {
-  const observer = new MutationObserver(() => updateWeatherAlignment(container));
-  observer.observe(container, { childList: true, subtree: true });
-});
-
+// API HELPERS
 function buildMeteoUrl({ daily, hourly }) {
   const params = new URLSearchParams({
     latitude: LOCATION.latitude,
@@ -61,38 +79,52 @@ async function fetchJson(url) {
   return res.json();
 }
 
-//MAKE INTO ONE FUNCTION?
+// UI HELPERS
+/* TODO: Do we want a single function for updating the container alignments? */
 
-// Media query for system dark mode
-const prefersDarkQuery = window.matchMedia('(prefers-color-scheme: dark)');
+// Function to update container alignment
+// UI HELPERS
+function setupWeatherContainers() {
+  const containers = document.querySelectorAll(".weather");
+
+  function updateWeatherAlignment(container) {
+    if (container.scrollWidth > container.clientWidth) {
+      container.classList.add("overflow");
+      container.classList.remove("center");
+    } else {
+      container.classList.add("center");
+      container.classList.remove("overflow");
+    }
+  }
+
+  // Initial alignment
+  containers.forEach(updateWeatherAlignment);
+
+  // Observe changes in content
+  containers.forEach(container => {
+    const observer = new MutationObserver(() => updateWeatherAlignment(container));
+    observer.observe(container, { childList: true, subtree: true });
+  });
+
+  // Update on window resize
+  window.addEventListener("resize", () => containers.forEach(updateWeatherAlignment));
+}
 
 // Function to apply the mode
 function applyMode(isDark) {
   document.body.classList.toggle('dark-mode', isDark);
   document.body.classList.toggle('light-mode', !isDark);
   toggleButton.textContent = isDark ? 'Hell' : 'Dunkel';
+
+  setMapLayers(isDark);
 }
 
-// Initial mode based on system preference
-applyMode(prefersDarkQuery.matches);
-
-// Listen for system preference changes
-prefersDarkQuery.addEventListener('change', (e) => {
-  applyMode(e.matches);
-});
-
-// Toggle button behavior for manual override
-toggleButton.addEventListener('click', () => {
-  const isDark = document.body.classList.contains('dark-mode');
-  applyMode(!isDark);
-});
-
+// FEATURE FUNCTIONS
 async function getSunTimes() {
   const url = buildMeteoUrl({ daily: "sunrise,sunset" });
 
   try {
     const data = await fetchJson(url);
-    console.log(data); // inspect the structure
 
     const { _time, sunrise, sunset } = data.daily;
     const todayIndex = 0;
@@ -105,7 +137,7 @@ async function getSunTimes() {
     const sunriseTime = sunriseDate.toLocaleTimeString("de-DE", {hour: "2-digit", minute: "2-digit"});
     const sunsetTime  = sunsetDate.toLocaleTimeString("de-DE", {hour: "2-digit", minute: "2-digit"});
 
-    sunTimesDiv.innerHTML = `<span>Sunrise: ${sunriseTime}</span> <span>Sunset: ${sunsetTime}</span>`;
+    sunTimesDiv.innerHTML = `<span>Aufgang: ${sunriseTime}</span> <span>Untergang: ${sunsetTime}</span>`;
   } catch (error) {
     console.error("Error fetching sun times:", error);
     sunTimesDiv.textContent = "Unable to load sun times.";
@@ -200,19 +232,8 @@ async function getHourlyForecast() {
   }
 }
 
-const zones = {
-  Texas: "America/Chicago",
-  Colombia: "America/Bogota",
-  Amsterdam: "Europe/Amsterdam",
-  Vietnam: "Asia/Ho_Chi_Minh",
-  Singapore: "Asia/Singapore"
-};
-
 function getTimeZones() {
   const now = new Date();
-  const result = {};
-
-  const timeZonesDiv = document.getElementById("timeZones");
 
   let html = "";
 
@@ -225,25 +246,36 @@ function getTimeZones() {
 
     html += `<span>${place}: ${timeZone}</span>`;
   }
-  console.log(html);
 
   timeZonesDiv.innerHTML = html;
 }
 
-getSunTimes();
-getDailyForecast();
-getHourlyForecast();
-getTimeZones();
+// EVENTS
+// Toggle button behavior for manual override
+toggleButton.addEventListener('click', () => {
+  const isDark = document.body.classList.contains('dark-mode');
+  applyMode(!isDark);
+});
 
-// Last number is zoom level
-var map = L.map('map').setView([52.3676, 4.9041], 13); // Amsterdam
+// Listen for system preference changes
+prefersDarkQuery.addEventListener('change', (e) => {
+  applyMode(e.matches);
+});
 
-L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
-  maxZoom: 19,
-  attribution: '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>'
-}).addTo(map);
-
-  /* force recalculation */
+/* force recalculation */
 window.addEventListener('load', () => {
   map.invalidateSize();
 });
+
+// INIT
+function init() {
+  applyMode(prefersDarkQuery.matches);
+  setupWeatherContainers();
+
+  getSunTimes();
+  getDailyForecast();
+  getHourlyForecast();
+  getTimeZones();
+}
+
+init();

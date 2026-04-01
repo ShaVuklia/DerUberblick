@@ -2,10 +2,9 @@
 <html lang="de">
 
 <!-- To do: make 15-min prediction when clicking on weather button -->
- <!-- Add button for additional times -->
+ <!-- Add button for additional times OR replace by a graph -->
 <!-- To do: make manual option for locations with userContent -->
 <!-- To do: make sure that the day forecast is only for the rest of the day, not previous hours -->
-<!-- To do: adjust leaflet in darkmode -->
 
 <head>
     <meta charset="UTF-8" />
@@ -25,20 +24,20 @@
 
 <body>
     <div class="top-bar">
-        <div class="times-container" id="sunTimes">Wird geladen…</div>
-        <div class="times-container" id="timeZones">Wird geladen…</div>
+        <div class="container times" id="sunTimes">Wird geladen…</div>
+        <div class="container times" id="timeZones">Wird geladen…</div>
         <button id="toggleButton">Hell</button>
     </div>
 
     <div class="main-container">
         <div>
             <h2>Wettervorhersage Amsterdam</h2>
-            <div class="weather-container" id="daily-forecast">Wird geladen…</div>
+            <div class="container weather" id="daily-forecast">Wird geladen…</div>
         </div>
         
         <div>
             <h2>Stündliche Vorhersage (Heute)</h2>
-            <div class="weather-container" id="hourly-forecast">Wird geladen…</div>
+            <div class="container weather" id="hourly-forecast">Wird geladen…</div>
         </div>    
 
         <div id="map"></div>
