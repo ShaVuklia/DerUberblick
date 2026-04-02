@@ -11,18 +11,20 @@ body {
 body.dark-mode {
     background-color: black;
     color: white;
-    background-image: url("Black-feather-background.jpg");
+    background-image: url("dark_sea.jpg");
 }
 body.light-mode {
     background-color: #f9f9f9;
-    background-image: url("Snow.jpg");
+    background-image: url("snow.jpg");
 }
 body.dark-mode a {
-    color: rgb(187, 221, 186);
+    color: rgb(37, 47, 37);         /* dark colour for leaflet link */
+    /* color: rgb(187, 221, 186);      this is the preferred general colour */
 }
 body.light-mode a {
     color: rgb(37, 145, 33);
 }
+
 
 .top-bar {
     display: flex;
@@ -73,7 +75,7 @@ body.light-mode .times {
     background-color:#e8f1f7;
 }
 body.dark-mode .times {
-    background-color:rgb(0, 0, 0);
+    background-color:#18232b;
 }
 
 #toggleButton {
@@ -136,7 +138,7 @@ body.light-mode .item {
     box-shadow: 0 2px 6px rgba(0,0,0,0.1);
 }
 body.dark-mode .item {
-    background: #2a4558;
+    background: #18232b;
     color: #e8f1f7;
     box-shadow: 0 2px 6px rgba(0,0,0,0.4);
 }
@@ -153,4 +155,13 @@ body.dark-mode .item {
   }
 }
 
+body.dark-mode .leaflet-layer,
+body.dark-mode .leaflet-control-zoom-in,
+body.dark-mode .leaflet-control-zoom-out,
+body.dark-mode .leaflet-control-attribution {
+  filter: invert(100%) hue-rotate(180deg) brightness(95%) contrast(90%);
+}
 
+body.dark-mode .leaflet-container {
+  background: #000;
+}

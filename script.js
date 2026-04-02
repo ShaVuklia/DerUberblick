@@ -28,36 +28,12 @@ const prefersDarkQuery = window.matchMedia('(prefers-color-scheme: dark)');
 // MAP SETUP
 const map = L.map('map').setView([LOCATION.latitude, LOCATION.longitude], 13);
 
-const lightTiles = L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
+const tiles = L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
     maxZoom: 19,
     attribution: '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>'
 });
 
-const darkTiles = L.tileLayer(
-'https://{s}.basemaps.cartocdn.com/dark_nolabels/{z}/{x}/{y}{r}.png',
-{ subdomains: 'abcd', maxZoom: 19 }
-);
-const lightLabels = L.tileLayer(
-  'https://{s}.basemaps.cartocdn.com/light_only_labels/{z}/{x}/{y}{r}.png',
-  { subdomains: 'abcd', maxZoom: 19 }
-);
-
-let currentLayers = [];
-
-function setMapLayers(isDark) {
-  // Remove existing layers
-  currentLayers.forEach(layer => map.removeLayer(layer));
-  currentLayers = [];
-
-  if (isDark) {
-    map.addLayer(darkTiles);
-    map.addLayer(lightLabels);
-    currentLayers = [darkTiles, lightLabels];
-  } else {
-    map.addLayer(lightTiles);
-    currentLayers = [lightTiles];
-  }
-}
+tiles.addTo(map);
 
 // API HELPERS
 function buildMeteoUrl({ daily, hourly }) {
@@ -115,8 +91,6 @@ function applyMode(isDark) {
   document.body.classList.toggle('dark-mode', isDark);
   document.body.classList.toggle('light-mode', !isDark);
   toggleButton.textContent = isDark ? 'Hell' : 'Dunkel';
-
-  setMapLayers(isDark);
 }
 
 // FEATURE FUNCTIONS
