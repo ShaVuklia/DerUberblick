@@ -11,20 +11,19 @@ body {
 body.dark-mode {
     background-color: black;
     color: white;
-    background-image: url("dark_sea.jpg");
+    background-image: url("dark_sea_edited_cropped.jpg");
 }
 body.light-mode {
     background-color: #f9f9f9;
     background-image: url("snow.jpg");
 }
 body.dark-mode a {
-    color: rgb(37, 47, 37);         /* dark colour for leaflet link */
+    color: rgb(202, 233, 202);
     /* color: rgb(187, 221, 186);      this is the preferred general colour */
 }
 body.light-mode a {
     color: rgb(37, 145, 33);
 }
-
 
 .top-bar {
     display: flex;
@@ -75,7 +74,7 @@ body.light-mode .times {
     background-color:#e8f1f7;
 }
 body.dark-mode .times {
-    background-color:#18232b;
+    background-color:#0d1419;
 }
 
 #toggleButton {
@@ -138,14 +137,14 @@ body.light-mode .item {
     box-shadow: 0 2px 6px rgba(0,0,0,0.1);
 }
 body.dark-mode .item {
-    background: #18232b;
+    background: #0d1419;
     color: #e8f1f7;
     box-shadow: 0 2px 6px rgba(0,0,0,0.4);
 }
 
 #map {
     width: 90%;        /* fill the parent width */
-    height: 70vh;       /* vh = viewport heigth */
+    height: 80vh;       /* vh = viewport heigth */
     min-height: 300px;  /* optional: don’t get too short on small screens */
     margin: 20px auto;  /* centers horizontally */
 }
@@ -154,11 +153,13 @@ body.dark-mode .item {
       width: 100%;
   }
 }
-
+/* Invert map colours for dark mode */
 body.dark-mode .leaflet-layer,
 body.dark-mode .leaflet-control-zoom-in,
 body.dark-mode .leaflet-control-zoom-out,
 body.dark-mode .leaflet-control-attribution {
+  /* Invert 100% to swap light/dark */
+  /* hue-rotate(180deg) converts blue color (large roads) to red */
   filter: invert(100%) hue-rotate(180deg) brightness(95%) contrast(90%);
 }
 
