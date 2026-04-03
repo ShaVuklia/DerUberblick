@@ -1,3 +1,6 @@
+// TO DO:
+// - Add crtl+z and crtl+y functionality in markers
+
 import { LOCATION } from './script.js';
 
 // MAP SETUP
@@ -14,13 +17,7 @@ tiles.addTo(map);
 function loadMarkers(map) {
     const saved = JSON.parse(localStorage.getItem('markers') || '[]');
     saved.forEach(({ lat, lng, text }) => 
-        addMarkerToMap(
-            map, 
-            lat, 
-            lng, 
-            text, 
-            false // showTextbox = false
-        )
+        addMarkerToMap(map, lat, lng, text, false)   // showTextbox
     );
 }
 
@@ -52,6 +49,7 @@ function createMarker(map, lat, lng, text = '') {
 }
 
 // CREATE FLOATING TEXTBOX
+// TO DO: possibly split up this function?
 function createTextboxForMarker(map, marker) {
     // Remove existing textbox
     if (currentTextbox) currentTextbox.remove();
@@ -66,7 +64,7 @@ function createTextboxForMarker(map, marker) {
         padding: '5px',
         border: '1px solid #ccc',
         borderRadius: '5px',
-        zIndex: 1000,
+        zIndex: 1000,                       // ensures it appears above other map elements
         display: 'flex',
         gap: '5px',
         alignItems: 'center'
@@ -161,15 +159,24 @@ map.on('contextmenu', (e) => {
     }
 
     const { lat, lng } = e.latlng;
-    addMarkerToMap(map, lat, lng, '', true); // <--- showTextbox = true
+    addMarkerToMap(map, lat, lng, '', true);   // showTextbox = true
 });
 
-// Trigger OK button when Enter is pressed, but only if a textbox is open
+
+// Trigger OK/Delete buttons when Enter/Backspace is pressed, if a textbox is open
 document.addEventListener('keydown', (e) => {
-    if (e.key === 'Enter' && currentTextbox) {
+    if (!currentTextbox) return; // only act if a textbox is open
+
+    if (e.key === 'Enter') {
         e.preventDefault(); // prevent default Enter behavior
         const okBtn = currentTextbox.querySelector('button'); // first button is OK
         if (okBtn) okBtn.click();
+    }
+
+    if (e.key === 'Backspace') {
+        e.preventDefault(); // prevent default backspace behavior
+        const delBtn = currentTextbox.querySelectorAll('button')[1]; // second button is Delete
+        if (delBtn) delBtn.click();
     }
 });
 
