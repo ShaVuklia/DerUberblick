@@ -79,10 +79,11 @@ body.dark-mode .times {
 
 #toggleButton {
     align-self: center;          /* align-self overrides a flex item's align-items value */
+    width: 4.5em;
     height: 40px;
-    padding: 10px 20px;
-    border-radius: 5px;
+    text-align: center;
     font-size: 1rem;
+    border-radius: 5px;
     cursor: pointer;
     transition: background-color 0.3s, color 0.3s, border-color 0.3s;
 }
@@ -148,7 +149,7 @@ body.dark-mode .item {
     min-height: 300px;  /* optional: don’t get too short on small screens */
     margin: 20px auto;  /* centers horizontally */
 }
-@media (max-width: 768px) {
+@media (max-width: 487px) {
   #map {
       width: 100%;
   }

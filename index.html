@@ -1,8 +1,6 @@
 <!DOCTYPE html>
 <html lang="de">
 
-<!-- To do: make manual option for locations with local storage (or supabase?) -->
-
 <!-- Make day weather forecast visual (temp, prec, uv index), add button for other days too -->
 <!-- To do: weather forecast from 00:00 till 00:00 -->
 
@@ -41,11 +39,12 @@
             <h2>Stündliche Vorhersage (Heute)</h2>
             <div class="container weather" id="hourly-forecast">Wird geladen…</div>
         </div>    
-
-        <div id="map"></div>
     </div>
 
-    <script src="script.js"></script>
+    <div id="map"></div>
 
+    <script type="module" src="script.js"></script>
+    <script type="module" src="weather.js"></script>
+    <script type="module" src="map.js"></script>
 </body>
 </html>
