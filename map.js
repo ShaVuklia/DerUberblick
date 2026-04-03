@@ -1,4 +1,5 @@
 // TO DO:
+
 // - Add crtl+z and crtl+y functionality in markers
 
 import { LOCATION } from './script.js';
@@ -88,6 +89,9 @@ function createTextboxForMarker(map, marker) {
 
     container.append(input, okBtn, delBtn);
     map.getPanes().overlayPane.appendChild(container);
+
+    // auto-focus so cursor is immediately active
+    input.focus();
 
     // Position textbox near marker
     function updatePosition() {
