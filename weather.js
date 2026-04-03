@@ -1,20 +1,14 @@
+// TO DO
+// - Add visible error messages if data can't be loaded
+
 // CONFIG
 import { LOCATION } from './script.js';
-
-const zones = {
-  Texas: "America/Chicago",
-  Colombia: "America/Bogota",
-  Amsterdam: "Europe/Amsterdam",
-  Vietnam: "Asia/Ho_Chi_Minh",
-  Singapore: "Asia/Singapore"
-};
 
 const METEO_API_ENDPOINT = "https://api.open-meteo.com/v1/forecast";
 
 // DOM REFERENCES
 const dailyForecastDiv = document.getElementById("daily-forecast");
 const hourlyForecastDiv = document.getElementById("hourly-forecast");
-const timeZonesDiv = document.getElementById("timeZones");
 const sunTimesDiv = document.getElementById("sunTimes");
 
 // API HELPERS
@@ -88,24 +82,6 @@ async function getSunTimes() {
     console.error("Error fetching sun times:", error);
     sunTimesDiv.textContent = "Unable to load sun times.";
   }
-}
-
-function getTimeZones() {
-  const now = new Date();
-
-  let html = "";
-
-  // Object.entries = array of the elements [key, values]
-  for (const [place, zone] of Object.entries(zones)) {
-    let timeZone = new Intl.DateTimeFormat("de-DE", {
-      timeZone: zone,
-      timeStyle: "short",
-    }).format(now);
-
-    html += `<span>${place}: ${timeZone}</span>`;
-  }
-
-  timeZonesDiv.innerHTML = html;
 }
 
 async function getDailyForecast() {
@@ -198,13 +174,10 @@ async function getHourlyForecast() {
 
 // INIT
 function init() {
-  setupWeatherContainers();
-
   getSunTimes();
+  setupWeatherContainers();
   getDailyForecast();
   getHourlyForecast();
-  getTimeZones();
 }
 
 init();
-setInterval(getTimeZones, 1000);

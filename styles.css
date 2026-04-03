@@ -101,7 +101,7 @@ body.light-mode #toggleButton {
     border: 2px solid darkgreen; /* width + style + color */
 }
 body.light-mode #toggleButton:hover {
-    background-color: rgb(189, 207, 189);
+    background-color: rgb(203, 221, 203);
 }
 
 .main-container {
@@ -147,7 +147,7 @@ body.dark-mode .item {
     width: 90%;        /* fill the parent width */
     height: 80vh;       /* vh = viewport heigth */
     min-height: 300px;  /* optional: don’t get too short on small screens */
-    margin: 20px auto;  /* centers horizontally */
+    margin: 20px auto 50px auto;  /* centers horizontally */
 }
 @media (max-width: 487px) {
   #map {
