@@ -96,12 +96,12 @@ body.dark-mode #toggleButton:hover {
     background-color: rgb(30, 30, 30);
 }
 body.light-mode #toggleButton {
-    background-color: rgb(192, 204, 192);
+    background-color: rgb(222, 234, 222);
     color: darkgreen;
     border: 2px solid darkgreen; /* width + style + color */
 }
 body.light-mode #toggleButton:hover {
-    background-color: rgb(170, 190, 170);
+    background-color: rgb(189, 207, 189);
 }
 
 .main-container {

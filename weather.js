@@ -160,7 +160,7 @@ async function getHourlyForecast() {
     const end = new Date();
     // Create next day with time at 01:00
     end.setDate(end.getDate() + 1);
-    end.setHours(1, 0, 0, 0);
+    end.setHours(0, 0, 0, 0);
     
     let html = "";
 

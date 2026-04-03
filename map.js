@@ -44,94 +44,100 @@ function deleteMarker(lat, lng) {
 // GLOBAL REFERENCE TO CURRENT TEXTBOX
 let currentTextbox = null;
 
-// MARKER UTILITY WITH FLOATING TEXTBOX
-function addMarkerToMap(map, lat, lng, initialText = '', showTextbox = false) {
+// CREATE MARKER
+function createMarker(map, lat, lng, text = '') {
     const marker = L.marker([lat, lng]).addTo(map);
+    marker.text = text;
+    return marker;
+}
 
-    // Store text on the marker
-    marker.text = initialText;
+// CREATE FLOATING TEXTBOX
+function createTextboxForMarker(map, marker) {
+    // Remove existing textbox
+    if (currentTextbox) currentTextbox.remove();
 
-    // Show floating textbox for marker
-    function showFloatingTextbox() {
-        // Remove existing textbox
-        if (currentTextbox) currentTextbox.remove();
+    const container = document.createElement('div');
+    container.id = 'marker-editor';
+    currentTextbox = container;
 
-        const container = document.createElement('div');
-        container.id = 'marker-editor';
-        currentTextbox = container;
+    Object.assign(container.style, {
+        position: 'absolute',
+        background: 'white',
+        padding: '5px',
+        border: '1px solid #ccc',
+        borderRadius: '5px',
+        zIndex: 1000,
+        display: 'flex',
+        gap: '5px',
+        alignItems: 'center'
+    });
 
-        Object.assign(container.style, {
-            position: 'absolute',
-            background: 'white',
-            padding: '5px',
-            border: '1px solid #ccc',
-            borderRadius: '5px',
-            zIndex: 1000,
-            display: 'flex',
-            gap: '5px',
-            alignItems: 'center'
-        });
+    const input = document.createElement('input');
+    input.type = 'text';
+    input.value = marker.text;
+    input.placeholder = 'Location';
 
-        // Input
-        const input = document.createElement('input');
-        input.type = 'text';
-        input.value = marker.text;
-        input.placeholder = 'Location';
+    function resizeInput() {
+        input.style.width = Math.max(input.value.length, 9) + 'ch';
+    }
+    input.addEventListener('input', resizeInput);
+    resizeInput();
 
-        function resizeInput() {
-            input.style.width = Math.max(input.value.length, 9) + 'ch';
-        }
-        input.addEventListener('input', resizeInput);
-        resizeInput();
+    const okBtn = document.createElement('button');
+    okBtn.textContent = 'Ok';
+    const delBtn = document.createElement('button');
+    delBtn.textContent = 'Del';
 
-        // Buttons
-        const okBtn = document.createElement('button');
-        okBtn.textContent = 'Ok';
-        const delBtn = document.createElement('button');
-        delBtn.textContent = 'Del';
+    container.append(input, okBtn, delBtn);
+    map.getPanes().overlayPane.appendChild(container);
 
-        container.append(input, okBtn, delBtn);
-        map.getPanes().overlayPane.appendChild(container);
+    // Position textbox near marker
+    function updatePosition() {
+        const pos = map.latLngToLayerPoint(marker.getLatLng());
+        container.style.left = pos.x + 10 + 'px';
+        container.style.top = pos.y - 20 + 'px';
+    }
+    updatePosition();
+    map.on('zoom move', updatePosition);
 
-        // Position textbox near marker
-        function updatePosition() {
-            const pos = map.latLngToLayerPoint(marker.getLatLng());
-            container.style.left = pos.x + 10 + 'px';
-            container.style.top = pos.y - 20 + 'px';
-        }
-        updatePosition();
-        map.on('zoom move', updatePosition);
-
-        // OK button: save text
-        okBtn.onclick = () => {
-            marker.text = input.value;
-            saveMarker(marker.getLatLng().lat, marker.getLatLng().lng, marker.text);
-            container.remove();
-            currentTextbox = null;
-        };
-
-        // Delete button
-        delBtn.onclick = () => {
-            map.removeLayer(marker);
-            deleteMarker(marker.getLatLng().lat, marker.getLatLng().lng);
-            container.remove();
-            currentTextbox = null;
-        };
-
-        // Remove textbox if marker is removed
-        marker.on('remove', () => {
-            container.remove();
-            if (currentTextbox === container) currentTextbox = null;
-        });
+    // OK button or Enter key
+    function saveText() {
+        marker.text = input.value;
+        saveMarker(marker.getLatLng().lat, marker.getLatLng().lng, marker.text);
+        container.remove();
+        currentTextbox = null;
     }
 
-    // Only show textbox immediately if requested
+    okBtn.onclick = saveText;
+    input.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') saveText();
+    });
+
+    // Delete button
+    delBtn.onclick = () => {
+        map.removeLayer(marker);
+        deleteMarker(marker.getLatLng().lat, marker.getLatLng().lng);
+        container.remove();
+        currentTextbox = null;
+    };
+
+    // Remove textbox if marker is removed
+    marker.on('remove', () => {
+        container.remove();
+        if (currentTextbox === container) currentTextbox = null;
+    });
+}
+
+// ADD MARKER TO MAP
+function addMarkerToMap(map, lat, lng, initialText = '', showTextbox = false) {
+    const marker = createMarker(map, lat, lng, initialText);
+
     if (showTextbox) {
-        showFloatingTextbox();
+        createTextboxForMarker(map, marker);
     }
 
     // Click marker to edit
-    marker.on('click', showFloatingTextbox);
+    marker.on('click', () => createTextboxForMarker(map, marker));
 }
 
 // MAP CLICK HANDLERS
@@ -156,6 +162,15 @@ map.on('contextmenu', (e) => {
 
     const { lat, lng } = e.latlng;
     addMarkerToMap(map, lat, lng, '', true); // <--- showTextbox = true
+});
+
+// Trigger OK button when Enter is pressed, but only if a textbox is open
+document.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter' && currentTextbox) {
+        e.preventDefault(); // prevent default Enter behavior
+        const okBtn = currentTextbox.querySelector('button'); // first button is OK
+        if (okBtn) okBtn.click();
+    }
 });
 
 // INITIALISE 
