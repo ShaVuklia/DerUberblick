@@ -1,3 +1,5 @@
+// todo: give Wetter/Karte buttons equal width
+
 // CONFIG
 export const LOCATION = {
   latitude: 52.37,
@@ -9,13 +11,15 @@ const zones = {
   Texas: "America/Chicago",
   Colombia: "America/Bogota",
   Amsterdam: "Europe/Amsterdam",
-  Vietnam: "Asia/Ho_Chi_Minh",
   Singapore: "Asia/Singapore"
 };
 
 // DOM REFERENCES
 const toggleButton = document.getElementById("toggleButton");
 const timeZonesDiv = document.getElementById("timeZones");
+
+const tabs = document.querySelectorAll(".tab");
+const pages = document.querySelectorAll(".page");
 
 // FEATURE FUNCTIONS
 // Function to apply the dark/light theme
@@ -57,6 +61,41 @@ prefersDarkQuery.addEventListener('change', (e) => {
   applyMode(e.matches);
 });
 
+// TAB SWITCHING
+tabs.forEach((tab) => {
+  tab.addEventListener("click", () => {
+
+    // remove active classes
+    tabs.forEach((t) => t.classList.remove("active"));
+    pages.forEach((p) => p.classList.remove("active-page"));
+
+    // activate clicked tab
+    tab.classList.add("active");
+
+    // show page
+    const pageId = tab.dataset.page;
+
+    document.getElementById(pageId)
+      .classList.add("active-page");
+
+    // MAP FIX: initialize + resize when map tab is opened
+    if (pageId === "map-page") {
+
+      if (!window.mapInitialized) {
+        window.initMap();          // create map only once
+        window.mapInitialized = true;
+      }
+
+      // Leaflet needs this after becoming visible
+      setTimeout(() => {
+        if (window.map) {
+          window.map.invalidateSize();
+        }
+      }, 0);
+    }
+  });
+});
+
 // INIT
 function init() {
   getTimeZones();
@@ -66,4 +105,5 @@ applyMode(prefersDarkQuery.matches);
 
 init();
 setInterval(getTimeZones, 1000);
+
 

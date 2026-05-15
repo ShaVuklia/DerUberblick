@@ -1,16 +1,13 @@
 <!DOCTYPE html>
 <html lang="de">
 
-<!-- Make daily weather forecast visual (temp, prec, uv index), add button for other days too -->
-<!-- To do: weather forecast from 00:00 till 00:00 -->
-
-<!-- To do (optional): make 15-min prediction when clicking on weather button -->
-
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>Shanenigens</title>
     <link rel="stylesheet" href="styles.css" />
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
     <!-- Include leaflet CSS file --> 
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
@@ -29,19 +26,37 @@
         <button id="toggleButton">Hell</button>
     </div>
 
-    <div class="main-container">
-        <div>
-            <h2>Wettervorhersage Amsterdam</h2>
-            <div class="container weather" id="daily-forecast">Wird geladen…</div>
-        </div>
-        
-        <div>
-            <h2>Stündliche Vorhersage (Heute)</h2>
-            <div class="container weather" id="hourly-forecast">Wird geladen…</div>
-        </div>    
+<div class="app-layout">
+
+    <div class="page-controls">
+        <button class="tab active" data-page="forecast-page">Wetter</button>
+        <button class="tab" data-page="map-page">Karte</button>
     </div>
 
-    <div id="map"></div>
+    <div class="page-area">
+        <!-- FORECAST -->
+        <section id="forecast-page" class="page active-page">
+
+            <div>
+                <h2>Wettervorhersage Amsterdam</h2>
+                <div class="container weather" id="daily-forecast">
+                    Wird geladen…
+                </div>
+            </div>
+
+            <div id="hourly-forecast">
+                Wird geladen…
+            </div>
+            
+        </section>
+
+        <!-- MAP -->
+        <section id="map-page" class="page">
+            <div id="map"></div>
+        </section>
+    </div>
+
+</div>
 
     <script type="module" src="script.js"></script>
     <script type="module" src="weather.js"></script>

@@ -1,5 +1,16 @@
 // TO DO
-// - Add visible error messages if data can't be loaded
+
+// Add button for other days too
+// Hourly forecast should be updated every 10 minutes I think...
+// make title graph black
+// Check weather forecast accuracy... mayeb 15-min data will be better?
+// make y-axis dynamic (range not to small, not too big)
+
+// Remove top-most grid line
+
+// ? Add visible error messages if data can't be loaded
+
+// Make daily weather forecast visual (temp, prec, uv index) [done]
 
 // CONFIG
 import { LOCATION } from './script.js';
@@ -13,11 +24,14 @@ const sunTimesDiv = document.getElementById("sunTimes");
 
 // API HELPERS
 function buildMeteoUrl({ daily, hourly }) {
+  // Build URL query parameters for API request
   const params = new URLSearchParams({
     latitude: LOCATION.latitude,
     longitude: LOCATION.longitude,
     timezone: LOCATION.timezone,
   });
+
+  console.log(params);
 
   if (daily) params.set("daily", daily);
   if (hourly) params.set("hourly", hourly);
@@ -80,7 +94,7 @@ async function getSunTimes() {
     sunTimesDiv.innerHTML = `<span>☀️: ${sunriseTime}</span> <span>🌙: ${sunsetTime}</span>`;
   } catch (error) {
     console.error("Error fetching sun times:", error);
-    sunTimesDiv.textContent = "Unable to load sun times.";
+    sunTimesDiv.textContent = "Kein Sonnenzeiten verfügbar";
   }
 }
 
@@ -120,56 +134,218 @@ async function getDailyForecast() {
   }
 }
 
+// GRAPH HOURLY FORECAST
+function processHourlyData(hourlyData, hoursAhead = 12) {
+  const labels = [];
+  const temps = [];
+  const rain = [];
+  const uv = [];
+
+  const { time, temperature_2m, precipitation, uv_index } = hourlyData;
+
+  const now = new Date();
+  now.setMinutes(0, 0, 0);
+
+  const end = new Date();
+  end.setHours(end.getHours() + hoursAhead);
+
+  for (let i = 0; i < time.length; i++) {
+    const date = new Date(time[i]);
+
+    if (date >= now && date <= end) {
+      labels.push(`${date.getHours()}:00`);
+      temps.push(Math.round(temperature_2m[i]));
+      rain.push(precipitation[i]);
+      uv.push(uv_index[i]);
+    }
+  }
+
+  return { labels, temps, rain, uv };
+}
+
+function createChartData(labels, temps, rain, uv) {
+  return {
+    labels,
+    datasets: [
+      {
+        label: "Temperature (°C)",
+        data: temps,
+        borderColor: "#e74c3c",
+        tension: 0.3
+      },
+      {
+        label: "Precipitation (mm)",
+        data: rain,
+        borderColor: "rgba(52, 152, 219, 1)",
+        backgroundColor: "rgba(52, 152, 219, 0.25)",
+        fill: true,
+        tension: 0.3,
+        yAxisID: "y1"
+      },
+      {
+        label: "UV Index",
+        type: "bar",
+        data: uv,
+        backgroundColor: "#f1c40f",
+        yAxisID: "y2"
+      }
+    ]
+  };
+}
+
+function createForecastOptions(temps, rain) {
+  return {
+    responsive: true,
+    maintainAspectRatio: true,
+
+    plugins: {
+      legend: {
+        display: false
+      },
+
+      title: {
+        display: true,
+        text: "Stündliche Vorhersage (Nächste 12 Stunden)",
+        color: "black",
+
+        font: {
+          size: 18
+        }
+      }
+    },
+
+    scales: {
+      y: {
+        min: Math.min(...temps) - 7,
+        max: Math.max(...temps) + 7,
+
+        title: {
+          display: true,
+          text: "Temperature"
+        },
+
+        grid: {
+          display: true
+        }
+      },
+
+      y1: {
+        min: 0,
+        max: Math.max(10, Math.max(...rain) * 1.2),
+
+        position: "right",
+
+        grid: {
+          drawOnChartArea: false
+        },
+
+        title: {
+          display: true,
+          text: "Precipitation (mm)"
+        }
+      },
+
+      y2: {
+        min: 0,
+        max: 11,
+        display: false
+      },
+
+      x: {
+        ticks: {
+          font: {
+            size: 14
+          }
+        },
+
+        grid: {
+          display: false
+        }
+      }
+    }
+  };
+}
+
+let hourlyChart;
+
 async function getHourlyForecast() {
   const url = buildMeteoUrl({
-    hourly: "temperature_2m,precipitation_probability,precipitation,windspeed_10m,winddirection_10m,uv_index"
+    hourly:
+      "temperature_2m,precipitation_probability,precipitation,windspeed_10m,winddirection_10m,uv_index"
   });
 
   try {
     const data = await fetchJson(url);
-    hourlyForecastDiv.innerHTML = "";
 
-    const { time, temperature_2m, precipitation_probability, precipitation, windspeed_10m, uv_index } = data.hourly;
+    hourlyForecastDiv.innerHTML = `
+      <canvas id="hourlyChart"></canvas>
+    `;
 
-    const now = new Date();
-    now.setMinutes(0, 0, 0);
-    const end = new Date();
-    // Create next day with time at 01:00
-    end.setDate(end.getDate() + 1);
-    end.setHours(0, 0, 0, 0);
-    
-    let html = "";
+    const ctx = document
+      .getElementById("hourlyChart")
+      .getContext("2d");
 
-    for (let i = 0; i < time.length; i++) {
-      const date = new Date(time[i]);
-      // Continue loop until 01:00 next day
-      if (date >= now && date <= end) {
-        const hour = date.getHours();
-        const temp = Math.round(temperature_2m[i]);
-        const rainProb = precipitation_probability[i];
-        const rainAmount = precipitation[i];
-        const windSpeed = Math.round(windspeed_10m[i]);
-        const uv = uv_index[i];
-        const rainIcon = rainProb >= 35 ? "☔" : "🌂";
+    const { labels, temps, rain, uv } =
+      processHourlyData(data.hourly);
 
-        html += `
-          <div class="item">
-            <strong>${hour}:00</strong><br>
-            Temp: ${temp}°C<br>
-            ${rainIcon}: ${rainProb}% (${rainAmount} mm)<br>
-            🍃: ${windSpeed} km/h<br>
-            UV Index: ${uv}
-          </div>
-        `;
-      }
+    const forecastData =
+      createChartData(labels, temps, rain, uv);
+
+    const forecastOptions =
+      createForecastOptions(temps, rain);
+
+    if (hourlyChart) {
+      hourlyChart.destroy();
     }
 
-    hourlyForecastDiv.innerHTML = html;
+    hourlyChart = new Chart(ctx, {
+      type: "line",
+      data: forecastData,
+      options: forecastOptions
+    });
 
   } catch (err) {
-    hourlyForecastDiv.textContent = "Unable to load forecast.";
+    hourlyForecastDiv.textContent =
+      "Prognose konnte nicht geladen werden.";
+
     console.error(err);
   }
+}
+
+function scheduleSunTimesUpdate() {
+  const now = new Date();
+
+  const nextMidnight = new Date(now);
+  nextMidnight.setHours(24, 0, 0, 0); // next 00:00:00
+
+  const msUntilMidnight = nextMidnight - now;
+
+  setTimeout(() => {
+    getSunTimes();
+
+    // then repeat every 24 hours
+    setInterval(getSunTimes, 24 * 60 * 60 * 1000);
+
+  }, msUntilMidnight);
+}
+
+function scheduleHourlyForecastUpdate() {
+  const now = new Date();
+
+  // Time until next full hour
+  const msUntilNextHour =
+    (60 - now.getMinutes()) * 60 * 1000 -
+    now.getSeconds() * 1000 -
+    now.getMilliseconds();
+
+  setTimeout(() => {
+    // Update immediately at the new hour
+    getHourlyForecast();
+
+    // Then update every hour
+    setInterval(getHourlyForecast, 60 * 60 * 1000);
+
+  }, msUntilNextHour);
 }
 
 // INIT
@@ -178,6 +354,9 @@ function init() {
   setupWeatherContainers();
   getDailyForecast();
   getHourlyForecast();
+
+  scheduleHourlyForecastUpdate();
+  scheduleSunTimesUpdate();
 }
 
 init();

@@ -1,18 +1,52 @@
 // TO DO:
 
-// - Add crtl+z and crtl+y functionality in markers
+// make map on separate page [done]
+// if i click on a marker, then the page jumps up -> fixed with: `preventScroll: true` [done]
+// Add crtl+z and crtl+y functionality in markers
 
 import { LOCATION } from './script.js';
 
 // MAP SETUP
-const map = L.map('map').setView([LOCATION.latitude, LOCATION.longitude], 13);
+let map;
 
-const tiles = L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
-    maxZoom: 19,
-    attribution: '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>'
-});
+function initMap() {
+    map = L.map('map').setView([LOCATION.latitude, LOCATION.longitude], 13);
 
-tiles.addTo(map);
+    const tiles = L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        maxZoom: 19,
+        attribution: '&copy; OpenStreetMap'
+    });
+
+    tiles.addTo(map);
+
+    loadMarkers(map);
+
+    // MAP CLICK HANDLERS
+    // Dismiss floating textbox when clicking anywhere on the map
+    map.on('click', (event) => {
+        // if click was inside the current textbox, do nothing
+        if (currentTextbox && !currentTextbox.contains(event.originalEvent.target)) {
+            currentTextbox.remove();
+            currentTextbox = null;
+            event.originalEvent.preventDefault(); // stops any default action
+        }
+    });
+
+    // Right-click → new marker → show textbox immediately
+    map.on('contextmenu', (event) => {
+        event.originalEvent.preventDefault();
+
+        if (currentTextbox) {
+            currentTextbox.remove();
+            currentTextbox = null;
+            return;
+        }
+
+        const { lat, lng } = event.latlng;
+        addMarkerToMap(map, lat, lng, '', true);   // showTextbox = true
+    });
+
+}
 
 // LOCALSTORAGE FUNCTIONS
 function loadMarkers(map) {
@@ -24,7 +58,7 @@ function loadMarkers(map) {
 
 function saveMarker(lat, lng, text) {
     const saved = JSON.parse(localStorage.getItem('markers') || '[]');
-    const index = saved.findIndex(m => m.lat === lat && m.lng === lng);
+    const index = saved.findIndex(marker => marker.lat === lat && marker.lng === lng);
     if (index !== -1) {
         saved[index].text = text;
     } else {
@@ -49,8 +83,31 @@ function createMarker(map, lat, lng, text = '') {
     return marker;
 }
 
+function createTextboxInput(text) {
+    const input = document.createElement('input');
+
+    input.type = 'text';
+    input.value = text;
+    input.placeholder = 'Location';
+
+    function resizeInput() {
+        input.style.width = Math.max(input.value.length, 9) + 'ch';
+    }
+
+    input.addEventListener('input', resizeInput);
+
+    resizeInput();
+
+    return input;
+}
+
+function createButton(text) {
+    const btn = document.createElement('button');
+    btn.textContent = text;
+    return btn;
+}
+
 // CREATE FLOATING TEXTBOX
-// TO DO: possibly split up this function?
 function createTextboxForMarker(map, marker) {
     // Remove existing textbox
     if (currentTextbox) currentTextbox.remove();
@@ -59,39 +116,16 @@ function createTextboxForMarker(map, marker) {
     container.id = 'marker-editor';
     currentTextbox = container;
 
-    Object.assign(container.style, {
-        position: 'absolute',
-        background: 'white',
-        padding: '5px',
-        border: '1px solid #ccc',
-        borderRadius: '5px',
-        zIndex: 1000,                       // ensures it appears above other map elements
-        display: 'flex',
-        gap: '5px',
-        alignItems: 'center'
-    });
-
-    const input = document.createElement('input');
-    input.type = 'text';
-    input.value = marker.text;
-    input.placeholder = 'Location';
-
-    function resizeInput() {
-        input.style.width = Math.max(input.value.length, 9) + 'ch';
-    }
-    input.addEventListener('input', resizeInput);
-    resizeInput();
-
-    const okBtn = document.createElement('button');
-    okBtn.textContent = 'Ok';
-    const delBtn = document.createElement('button');
-    delBtn.textContent = 'Del';
+    // Create input, OK/Delete buttons
+    const input = createTextboxInput(marker.text);
+    const okBtn = createButton('Ok');
+    const delBtn = createButton('Del');
 
     container.append(input, okBtn, delBtn);
     map.getPanes().overlayPane.appendChild(container);
 
-    // auto-focus so cursor is immediately active
-    input.focus();
+    // auto-focus so cursor is immediately active without scrolling the page
+    input.focus({ preventScroll: true });
 
     // Position textbox near marker
     function updatePosition() {
@@ -102,32 +136,38 @@ function createTextboxForMarker(map, marker) {
     updatePosition();
     map.on('zoom move', updatePosition);
 
-    // OK button or Enter key
+    function closeTextbox() {
+        map.off('zoom move', updatePosition);
+
+        container.remove();
+
+        if (currentTextbox === container) {
+            currentTextbox = null;
+        }
+    }
+
     function saveText() {
         marker.text = input.value;
-        saveMarker(marker.getLatLng().lat, marker.getLatLng().lng, marker.text);
-        container.remove();
-        currentTextbox = null;
+        const { lat, lng } = marker.getLatLng();
+        saveMarker(lat, lng, marker.text);
+        closeTextbox();
     }
 
     okBtn.onclick = saveText;
-    input.addEventListener('keydown', (e) => {
-        if (e.key === 'Enter') saveText();
+    input.addEventListener('keydown', (event) => {
+        if (event.key === 'Enter') saveText();
     });
 
     // Delete button
     delBtn.onclick = () => {
         map.removeLayer(marker);
-        deleteMarker(marker.getLatLng().lat, marker.getLatLng().lng);
-        container.remove();
-        currentTextbox = null;
+        const { lat, lng } = marker.getLatLng();
+        deleteMarker(lat, lng);
+        closeTextbox();
     };
 
     // Remove textbox if marker is removed
-    marker.on('remove', () => {
-        container.remove();
-        if (currentTextbox === container) currentTextbox = null;
-    });
+    marker.on('remove', closeTextbox);
 }
 
 // ADD MARKER TO MAP
@@ -142,52 +182,32 @@ function addMarkerToMap(map, lat, lng, initialText = '', showTextbox = false) {
     marker.on('click', () => createTextboxForMarker(map, marker));
 }
 
-// MAP CLICK HANDLERS
-// Dismiss floating textbox when clicking anywhere on the map
-map.on('click', (e) => {
-    // if click was inside the current textbox, do nothing
-    if (currentTextbox && !currentTextbox.contains(e.originalEvent.target)) {
-        currentTextbox.remove();
-        currentTextbox = null;
-        e.originalEvent.preventDefault(); // stops any default action
-    }
-});
-
-// Right-click → new marker → show textbox immediately
-map.on('contextmenu', (e) => {
-    if (currentTextbox) {
-        currentTextbox.remove();
-        currentTextbox = null;
-        e.originalEvent.preventDefault();
-        return;
-    }
-
-    const { lat, lng } = e.latlng;
-    addMarkerToMap(map, lat, lng, '', true);   // showTextbox = true
-});
-
-
 // Trigger OK/Delete buttons when Enter/Backspace is pressed, if a textbox is open
-document.addEventListener('keydown', (e) => {
+// todo: why is this separate and not part of a function?
+document.addEventListener('keydown', (event) => {
     if (!currentTextbox) return; // only act if a textbox is open
 
-    if (e.key === 'Enter') {
-        e.preventDefault(); // prevent default Enter behavior
+    if (event.key === 'Enter') {
+        event.preventDefault(); // prevent default Enter behavior
         const okBtn = currentTextbox.querySelector('button'); // first button is OK
         if (okBtn) okBtn.click();
     }
 
-    if (e.key === 'Backspace') {
-        e.preventDefault(); // prevent default backspace behavior
-        const delBtn = currentTextbox.querySelectorAll('button')[1]; // second button is Delete
+    if (event.key === 'Backspace') {
+
+        // if user is actively typing in the input, let Backspace behave normally
+        if (document.activeElement.tagName === 'INPUT') {
+            return;
+        }
+
+        event.preventDefault();
+
+        const delBtn = currentTextbox.querySelectorAll('button')[1];
         if (delBtn) delBtn.click();
     }
 });
 
-// INITIALISE 
-loadMarkers(map);
+window.initMap = initMap;
+window.map = null;
 
-// Force recalculation
-window.addEventListener('load', () => {
-  map.invalidateSize();
-});
+
