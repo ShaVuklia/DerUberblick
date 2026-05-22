@@ -224,6 +224,21 @@ body.dark-mode .item {
     align-items: stretch;
 }
 
+.forecast-day {
+  cursor: pointer;
+  transition: 0.2s;
+}
+
+.forecast-day:hover {
+  transform: translateY(-2px);
+  opacity: 0.9;
+}
+
+.forecast-day.active {
+  border: 2px solid #3498db;
+  background: rgba(52, 152, 219, 0.1);
+}
+
 #map {
     flex: 1;
     width: 100%;        /* fill the parent width */
